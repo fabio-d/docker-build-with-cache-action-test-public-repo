@@ -1,0 +1,26 @@
+name: Test
+
+on: [push]
+
+jobs:
+  make-cache:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: whoan/docker-build-with-cache-action@master
+      with:
+        username: fabio-d
+        password: "${{ secrets.GITHUB_TOKEN }}"
+        registry: docker.pkg.github.com
+        image_name: my-cached-image
+
+  dump-cache:
+    runs-on: ubuntu-latest
+    needs: [make-cache]
+    steps:
+    - uses: actions/checkout@v1
+    - name: Show cached image's marker
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login https://docker.pkg.github.com -u fabio-d --password-stdin
+        docker pull docker.pkg.github.com/fabio-d/docker-build-with-cache-action-test-public-repo/my-cached-image:latest
+        docker run --rm docker.pkg.github.com/fabio-d/docker-build-with-cache-action-test-public-repo/my-cached-image:latest cat marker
